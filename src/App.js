@@ -4,43 +4,82 @@ import Searcbar from "./Сomponents/Searchbar/Searchbar";
 import Modal from "./Сomponents/Modal/Modal";
 import Button from "./Сomponents/Button/Button";
 import * as ArticleAPI from "./Servises/services-api";
+import Spiner from "./Сomponents/Spiner/Spiner";
 
 export default class App extends Component {
   state = {
     articles: [],
     qvery: "",
-    page: 0,
+    page: null,
     imagSrc: "",
     isOpen: false,
+    spiner: false,
   };
 
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.page !== this.state.page) {
-      const { qvery, page } = this.state;
+  // componentDidUpdate(prevProps, prevState) {
+  //   if (prevState.page !== this.state.page) {
+  //     const { qvery, page } = this.state;
 
-      ArticleAPI.fearchArticle(qvery, page)
-        .then((response) => response.json())
-        .then((data) =>
-          this.setState((prevState) => ({
-            articles: [...prevState.articles, ...data.hits],
-          }))
-        )
-        .catch((error) => console.log("ERROR"));
-    }
-  }
+  //     ArticleAPI.fearchArticle(qvery, page)
+  //       .then((response) => response.json())
+  //       .then((data) =>
+  //         this.setState((prevState) => ({
+  //           spiner: false,
+  //           articles: [...prevState.articles, ...data.hits],
+  //         }))
+  //       )
+  //       .catch((error) => console.log("ERROR"));
+  //   }
+  //   if (prevState.qvery !== this.state.qvery) {
+  //     const { qvery } = this.state;
+
+  //     ArticleAPI.fearchArticle(qvery)
+  //       .then((response) => response.json())
+  //       .then((data) =>
+  //         this.setState((prevState) => ({
+  //           spiner: false,
+  //           articles: [...prevState.articles, ...data.hits],
+  //         }))
+  //       )
+  //       .catch((error) => console.log("ERROR"));
+  //   }
+  // }
 
   fetchAcrticle = (qvery) => {
     this.setState({
       articles: [],
       qvery: qvery,
       page: 1,
+      spiner: true,
     });
+
+    ArticleAPI.fearchArticle(qvery)
+      .then((response) => response.json())
+      .then((data) =>
+        this.setState({
+          spiner: false,
+          articles: [...data.hits],
+        })
+      )
+      .catch((error) => console.log("ERROR"));
   };
 
   fetchPaginations = () => {
-    this.setState((prevState) => ({
-      page: prevState.page + 1,
-    }));
+    const {qvery, page} = this.state;
+    this.setState({
+      spiner: true,
+    });
+
+    ArticleAPI.fearchArticle(qvery, `${page + 1}`)
+      .then((response) => response.json())
+      .then((data) =>
+        this.setState((prevState) => ({
+          spiner: false,
+          page: prevState.page + 1,
+          articles: [...prevState.articles, ...data.hits],
+        }))
+      )
+      .catch((error) => console.log("ERROR"));
   };
 
   openModal = (e) => {
@@ -58,13 +97,16 @@ export default class App extends Component {
   };
 
   render() {
-    const { articles, isOpen, imagSrc } = this.state;
+    const { articles, isOpen, imagSrc, spiner } = this.state;
+    // this.fetchValueAPI();
+
     return (
       <div>
         <Searcbar onSubmit={this.fetchAcrticle} />
         <ImageGallery items={articles} onOpen={this.openModal} />
         <Button onPagination={this.fetchPaginations} />
         {isOpen && <Modal src={imagSrc} onClose={this.closeModal} />}
+        {spiner && <Spiner />}
       </div>
     );
   }

@@ -14,6 +14,10 @@ export default class Searcbar extends Component {
   hendleSubmit = (e) => {
     e.preventDefault();
 
+    const {qvery} = this.state;
+
+    if(qvery === '') return;
+
     this.props.onSubmit(this.state.qvery);
 
     this.setState({
